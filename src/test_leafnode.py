@@ -23,7 +23,7 @@ class TestLeafNode(unittest.TestCase):
 
     def test_to_html_with_props(self):
         node = LeafNode("a", "Click here", {"href": "https://example.com"})
-        expected_html = '<a  href="https://example.com"  >Click here</a>'
+        expected_html = '<a href="https://example.com">Click here</a>'
         self.assertEqual(node.to_html(), expected_html)
 
     def test_to_html_without_props(self):

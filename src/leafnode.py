@@ -21,8 +21,11 @@ class LeafNode(HTMLNode):
         if not self.tag:
             return self.value
         
-        props_str = ' '.join(f'{key}="{value}"' for key, value in self.props.items()) if self.props else ''
-        opening_tag = f"<{self.tag} {props_str}>".strip()
+        opening_tag = f"<{self.tag}>"
+        if self.props:
+            props_str = ' '.join(f'{key}="{value}"' for key, value in self.props.items())
+            opening_tag = f"<{self.tag} {props_str}>"
+        
         closing_tag = f"</{self.tag}>"
         return f"{opening_tag}{self.value}{closing_tag}"
     
