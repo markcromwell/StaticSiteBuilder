@@ -222,6 +222,19 @@ It should output this list of nodes:
     return new_nodes
        
 
+def markdown_to_blocks(markdown):
+    """
+    Converts a markdown string to a list of blocks(plain strings). Need to split by double newlines.
+    Get rid of leading/trailing whitespace/newlines. Get rid of empty blocks.
+    """
+    import re
+
+    # Split on one-or-more blank lines. Use a CRLF-safe pattern so Windows
+    # line endings are handled, and multiple blank lines collapse to a
+    # single separator.
+    raw_blocks = re.split(r'(?:\r?\n\s*\r?\n)+', markdown)
+    blocks = [block.strip() for block in raw_blocks if block.strip() != '']
+    return blocks
 
 
 # Module only: tests are in the `src/test_*.py` files and run via the test runner.
