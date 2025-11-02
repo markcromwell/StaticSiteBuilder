@@ -1,6 +1,5 @@
 from enum import Enum
 from leafnode import LeafNode
-import unittest
 
 class TextType(Enum):
     TEXT = "text"
@@ -132,5 +131,4 @@ def split_nodes_link(old_nodes):
 
 
 
-if __name__ == "__main__":
-    unittest.main()
+# Module only: tests are in the `src/test_*.py` files and run via the test runner.
