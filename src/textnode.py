@@ -161,8 +161,6 @@ It should output this list of nodes:
     """
     import re
 
-    text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
-
     # Define regex patterns for common inline Markdown elements (in order of specificity)
     patterns = [
         (r'\*\*(.*?)\*\*', TextType.BOLD),      # **bold**
@@ -236,5 +234,133 @@ def markdown_to_blocks(markdown):
     blocks = [block.strip() for block in raw_blocks if block.strip() != '']
     return blocks
 
+class BlockType(Enum):
+    PARAGRAPH = "paragraph"
+    HEADING = "heading"
+    CODE = "code"
+    QUOTE = "quote"
+    UNORDERED_LIST = "unordered_list"
+    ORDERED_LIST = "ordered_list"
+
+
+def block_to_block_type(block):
+    """
+Our static site generator supports 6 types of markdown blocks:
+
+paragraph
+heading
+code
+quote
+unordered_list
+ordered_list
+We need a way to inspect a block of markdown text and determine what type of block it is.
+
+Assignment
+Create a BlockType enum with the block types from above.
+Create a block_to_block_type function that takes a single block of markdown text as input and returns the BlockType representing the type of block it is. You can assume all leading and trailing whitespace were already stripped (we did that in a previous lesson).
+Headings start with 1-6 # characters, followed by a space and then the heading text.
+Code blocks must start with 3 backticks and end with 3 backticks.
+Every line in a quote block must start with a > character.
+Every line in an unordered list block must start with a - character, followed by a space.
+Every line in an ordered list block must start with a number followed by a . character and a space. The number must start at 1 and increment by 1 for each line.
+If none of the above conditions are met, the block is a normal paragraph.
+    """
+
+    import re
+
+
+    # If the block is empty or whitespace-only, treat it as a paragraph.
+    if not block or block.strip() == "":
+        return BlockType.PARAGRAPH
+
+    lines = block.splitlines()
+
+    if re.match(r'^(#{1,6})\s', lines[0]):
+        return BlockType.HEADING
+    elif re.match(r'^```', lines[0]) and re.match(r'```$', lines[-1]):
+        return BlockType.CODE
+    elif all(re.match(r'^>\s', line) for line in lines):
+        return BlockType.QUOTE
+    elif all(re.match(r'^-\s', line) for line in lines):
+        return BlockType.UNORDERED_LIST
+    elif all(re.match(r'^\d+\.\s', line) for line in lines):
+        numbers = [int(re.match(r'^(\d+)\.\s', line).group(1)) for line in lines]
+        if numbers == list(range(1, len(numbers) + 1)):
+            return BlockType.ORDERED_LIST
+
+    return BlockType.PARAGRAPH
+
+
+def markdown_to_html_node(markdown):
+    """Convert a full markdown document into a single parent HTMLNode (a div).
+
+    This builds a ParentNode('div') whose children are block-level nodes
+    (p, h1-h6, pre/code, blockquote, ul/ol with li children).
+    """
+    import re
+    from parentnode import ParentNode
+
+    root_children = []
+    for block in markdown_to_blocks(markdown):
+        btype = block_to_block_type(block)
+
+        if btype == BlockType.PARAGRAPH:
+            # collapse single newlines within a paragraph to spaces (Markdown behavior)
+            content = block.replace('\n', ' ')
+            text_nodes = text_to_textnodes(content)
+            children = [text_node_to_html_node(tn) for tn in text_nodes]
+            root_children.append(ParentNode('p', children))
+
+        elif btype == BlockType.HEADING:
+            m = re.match(r'^(#{1,6})\s+(.*)', block)
+            level = len(m.group(1)) if m else 1
+            tag = f'h{level}'
+            heading_text = m.group(2) if m else block
+            text_nodes = text_to_textnodes(heading_text)
+            children = [text_node_to_html_node(tn) for tn in text_nodes]
+            root_children.append(ParentNode(tag, children))
+
+        elif btype == BlockType.CODE:
+            # extract content between fences
+            start = block.find('```')
+            end = block.rfind('```')
+            inner = ''
+            if start != -1 and end != -1 and end > start:
+                inner = block[start+3:end]
+                if inner.startswith('\n'):
+                    inner = inner[1:]
+            # preserve inner newlines
+            code_text = LeafNode(None, inner)
+            code_node = ParentNode('code', [code_text])
+            pre_node = ParentNode('pre', [code_node])
+            root_children.append(pre_node)
+
+        elif btype == BlockType.QUOTE:
+            lines = block.splitlines()
+            stripped = [re.sub(r'^>\s?', '', ln) for ln in lines]
+            joined = '\n'.join(stripped)
+            text_nodes = text_to_textnodes(joined)
+            children = [text_node_to_html_node(tn) for tn in text_nodes]
+            root_children.append(ParentNode('blockquote', [ParentNode('p', children)]))
+
+        elif btype == BlockType.UNORDERED_LIST:
+            items = []
+            for line in block.splitlines():
+                content = re.sub(r'^-\s', '', line)
+                text_nodes = text_to_textnodes(content)
+                children = [text_node_to_html_node(tn) for tn in text_nodes]
+                items.append(ParentNode('li', children))
+            root_children.append(ParentNode('ul', items))
+
+        elif btype == BlockType.ORDERED_LIST:
+            items = []
+            for line in block.splitlines():
+                content = re.sub(r'^\d+\.\s', '', line)
+                text_nodes = text_to_textnodes(content)
+                children = [text_node_to_html_node(tn) for tn in text_nodes]
+                items.append(ParentNode('li', children))
+            root_children.append(ParentNode('ol', items))
+
+    return ParentNode('div', root_children)
 
 # Module only: tests are in the `src/test_*.py` files and run via the test runner.
