@@ -2,30 +2,25 @@ from htmlnode import HTMLNode
 
 class LeafNode(HTMLNode):
     def __init__(self, tag, value, props=None):
-        super().__init__(tag, value, children=None, props=props)
+        super().__init__(tag=tag, value=value, props=props)
+
+    def to_html(self):
+        if self.tag is None:
+            return self.value or ""
+
+        # Raise for non-self-closing tags with no value (e.g., <p></p> invalid)
+        if self.value is None and self.tag != "img":
+            raise ValueError("LeafNode with tag must have a value")
+
+        props_html = ""
+        if self.props:
+            props_html = " " + " ".join(f'{k}="{v}"' for k, v in self.props.items())
+
+        if self.value is None:
+            # Self-closing for img only
+            return f"<{self.tag}{props_html}/>"
+        else:
+            return f"<{self.tag}{props_html}>{self.value}</{self.tag}>"
 
     def __repr__(self):
         return f"LeafNode({self.tag}, {self.value}, {self.props})"
-
-    def __eq__(self, other):
-        if not isinstance(other, LeafNode):
-            return NotImplemented
-        return (self.tag == other.tag and
-                self.value == other.value and
-                self.props == other.props)
-
-    def to_html(self):
-        if not self.value:
-            raise ValueError("LeafNode must have a value to convert to HTML")
-        
-        if not self.tag:
-            return self.value
-        
-        opening_tag = f"<{self.tag}>"
-        if self.props:
-            props_str = ' '.join(f'{key}="{value}"' for key, value in self.props.items())
-            opening_tag = f"<{self.tag} {props_str}>"
-        
-        closing_tag = f"</{self.tag}>"
-        return f"{opening_tag}{self.value}{closing_tag}"
-    
