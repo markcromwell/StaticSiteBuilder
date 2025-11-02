@@ -88,6 +88,54 @@ class TestTextNode(unittest.TestCase):
         ]
         self.assertListEqual(expected_nodes, new_nodes)
 
+    def test_text_node_to_html_node_various_types(self):
+        cases = [
+            (TextType.TEXT, None, 'LeafNode(None, Sample Text, None)'),
+            (TextType.BOLD, None, 'LeafNode(b, Sample Text, None)'),
+            (TextType.ITALIC, None, 'LeafNode(i, Sample Text, None)'),
+            (TextType.CODE, None, 'LeafNode(code, Sample Text, None)'),
+            (TextType.LINK, 'https://link.com', "LeafNode(a, Sample Text, {'href': 'https://link.com'})"),
+            (TextType.IMAGE, 'https://image.com/img.png', "LeafNode(img, None, {'src': 'https://image.com/img.png', 'alt': 'Sample Text'})"),
+        ]
+
+        for ttype, url, expected in cases:
+            with self.subTest(ttype=ttype):
+                node = TextNode('Sample Text', ttype, url)
+                html = text_node_to_html_node(node)
+                self.assertEqual(repr(html), expected)  
+
+    def test_text_node_to_html_node_unsupported_type(self):
+        class FakeTextType:
+            UNKNOWN = "unknown"
+
+        text_node = TextNode("Unknown Type", FakeTextType.UNKNOWN, None)
+        with self.assertRaises(ValueError):
+            text_node_to_html_node(text_node)   
+
+    def test_split_nodes_image_no_images(self):
+        old_nodes = [TextNode("This text has no images.", TextType.IMAGE)]
+        new_nodes = split_nodes_image(old_nodes)
+        expected_nodes = [TextNode("This text has no images.", TextType.TEXT)]
+        self.assertListEqual(expected_nodes, new_nodes)
+
+    def test_split_nodes_link_no_links(self):
+        old_nodes = [TextNode("This text has no links.", TextType.LINK)]
+        new_nodes = split_nodes_link(old_nodes)
+        expected_nodes = [TextNode("This text has no links.", TextType.TEXT)]
+        self.assertListEqual(expected_nodes, new_nodes)
+
+    def test_split_nodes_link_empty_text(self):
+        old_nodes = [TextNode("", TextType.LINK)]
+        new_nodes = split_nodes_link(old_nodes)
+        expected_nodes = [TextNode("", TextType.TEXT)]
+        self.assertListEqual(expected_nodes, new_nodes)
+        
+    def test_split_nodes_image_empty_text(self):
+        old_nodes = [TextNode("", TextType.IMAGE)]
+        new_nodes = split_nodes_image(old_nodes)
+        expected_nodes = [TextNode("", TextType.TEXT)]
+        self.assertListEqual(expected_nodes, new_nodes)
+
 
 if __name__ == "__main__":
     unittest.main()
