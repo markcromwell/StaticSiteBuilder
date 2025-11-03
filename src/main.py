@@ -16,7 +16,7 @@ def main():
     src_dir = os.path.dirname(__file__)
     project_root = os.path.dirname(src_dir)
 
-    from generate_page import generate_page
+    from generate_page import generate_page, generate_pages_recursive
     static_src = os.path.join(project_root, "static")
     public_dest = os.path.join(project_root, "public")
     # template.html lives in the src directory
@@ -27,7 +27,7 @@ def main():
     # Resolved paths (no debug print) — generate_page will be called with absolute paths.
 
     copy_static_files(static_src, public_dest)
-    generate_page(content_path, template_path, output_path)
+    generate_pages_recursive(content_path, template_path, output_path)
     
 
 if __name__ == "__main__":

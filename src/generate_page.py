@@ -77,3 +77,24 @@ Write the new full HTML page to a file at dest_path. Be sure to create any neces
     # Write the full HTML to destination path
     with open(dest_path, 'w', encoding='utf-8') as f:
         f.write(full_html)
+
+"""
+Create a generate_pages_recursive(dir_path_content, template_path, dest_dir_path) function. It should:
+
+Crawl every entry in the content directory
+For each markdown file found, generate a new .html file using the same template.html. The generated pages should be written to the public directory in the same directory structure.
+
+"""
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    for root, dirs, files in os.walk(dir_path_content):
+        relative_path = os.path.relpath(root, dir_path_content)
+        for file in files:
+            if file.endswith('.md'):
+                src_file_path = os.path.join(root, file)
+                dest_subdir = os.path.join(dest_dir_path, relative_path)
+                dest_file_name = os.path.splitext(file)[0] + '.html'
+                dest_file_path = os.path.join(dest_subdir, dest_file_name)
+                generate_page(src_file_path, template_path, dest_file_path)
+                print(f"Generated {dest_file_path} from {src_file_path}")
+
+                

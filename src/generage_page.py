@@ -18,3 +18,4 @@ except Exception:
 
 # Export generate_page from the resolved module
 generate_page = getattr(mod, 'generate_page')
+
