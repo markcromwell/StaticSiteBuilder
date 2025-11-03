@@ -16,7 +16,7 @@ def main():
     src_dir = os.path.dirname(__file__)
     project_root = os.path.dirname(src_dir)
 
-    from generage_page import generate_page
+    from generate_page import generate_page
     static_src = os.path.join(project_root, "static")
     public_dest = os.path.join(project_root, "public")
     # template.html lives in the src directory

@@ -54,12 +54,14 @@ def render_quote(block_text):
     """Convert a markdown blockquote into an HTMLNode.
     
     Strips the > prefix from each line, joins with newlines, and wraps
-    the content in both blockquote and p tags to match common markdown renderers.
+    the content in a blockquote. Don't add an extra <p> wrapper so the
+    blockquote contains the inline content directly.
     """
     lines = block_text.splitlines()
     stripped = [re.sub(r'^>\s?', '', ln) for ln in lines]
     joined = '\n'.join(stripped)
-    return ParentNode('blockquote', [ParentNode('p', text_to_children(joined))])
+    # Put inline children directly under the blockquote (no extra <p>)
+    return ParentNode('blockquote', text_to_children(joined))
 
 
 def render_unordered_list(block_text):

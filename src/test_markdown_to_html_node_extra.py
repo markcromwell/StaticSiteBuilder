@@ -14,7 +14,8 @@ class TestMarkdownToHtmlNodeExtra(unittest.TestCase):
         md = "> This is **bold**"
         node = markdown_to_html_node(md)
         html = node.to_html()
-        self.assertEqual(html, "<div><blockquote><p>This is <b>bold</b></p></blockquote></div>")
+        # blockquote contains inline content directly (no inner <p>)
+        self.assertEqual(html, "<div><blockquote>This is <b>bold</b></blockquote></div>")
 
     def test_unordered_list_rendering(self):
         md = "- a\n- b"

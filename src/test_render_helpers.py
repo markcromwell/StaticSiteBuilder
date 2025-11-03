@@ -26,7 +26,8 @@ class TestRenderHelpers(unittest.TestCase):
 
     def test_render_quote(self):
         node = render_quote("> This is **quoted**")
-        self.assertEqual(node.to_html(), "<blockquote><p>This is <b>quoted</b></p></blockquote>")
+        # blockquote contains inline content directly (no inner <p>)
+        self.assertEqual(node.to_html(), "<blockquote>This is <b>quoted</b></blockquote>")
 
     def test_render_unordered_list(self):
         node = render_unordered_list("- one\n- **two**")
