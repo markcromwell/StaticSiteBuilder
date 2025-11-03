@@ -335,7 +335,8 @@ If none of the above conditions are met, the block is a normal paragraph.
         return BlockType.HEADING
     elif re.match(r'^```', lines[0]) and re.match(r'```$', lines[-1]):
         return BlockType.CODE
-    elif all(re.match(r'^>\s', line) for line in lines):
+    # Allow blockquote lines that start with '>' optionally followed by a space
+    elif all(re.match(r'^>\s?', line) for line in lines):
         return BlockType.QUOTE
     elif all(re.match(r'^-\s', line) for line in lines):
         return BlockType.UNORDERED_LIST
