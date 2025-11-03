@@ -3,6 +3,8 @@
 from textnode import TextNode
 from copy_static import copy_static_files
 import os
+import sys
+
 
 
 def main():
@@ -31,7 +33,7 @@ def main():
     # Generate all pages from the content directory into the public directory
 
     # Use base path for href/src rewriting (default: empty string for root)
-    basepath = ""
+    basepath = sys.argv[1] if len(sys.argv) > 1 else "/"
     generate_pages_recursive(basepath, content_path, template_path, output_path)
     
 

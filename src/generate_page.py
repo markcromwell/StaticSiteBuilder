@@ -1,5 +1,6 @@
 
 import os
+import re
 from textnode import markdown_to_html_node
 from extract_title import extract_title
 
@@ -70,7 +71,16 @@ Write the new full HTML page to a file at dest_path. Be sure to create any neces
     # Replace placeholders in template
     full_html = template_content.replace("{{ Title }}", title).replace("{{ Content }}", html_content)
 
-    full_html = full_html.replace('href="/', f'href="{base_path}/').replace('src="/', f'src="{base_path}/') 
+    def join_base_path(base_path, url):
+        # Remove trailing slashes from base_path and leading from url
+        base_path = base_path.rstrip('/')
+        joined = os.path.join(base_path, url.lstrip('/'))
+        return re.sub(r'/+', '/', joined)
+
+    if base_path:
+        # Replace href="/..." and src="/..." with correct relative path
+        full_html = re.sub(r'href="/([^"]+)"', lambda m: f'href="{join_base_path(base_path, m.group(1))}"', full_html)
+        full_html = re.sub(r'src="/([^"]+)"', lambda m: f'src="{join_base_path(base_path, m.group(1))}"', full_html)
     # Ensure destination directory exists
     dest_dir = os.path.dirname(dest_path)
     os.makedirs(dest_dir, exist_ok=True)
@@ -101,7 +111,7 @@ def generate_pages_recursive(base_path, dir_path_content, template_path, dest_di
                 dest_file_path = os.path.join(dest_subdir, dest_file_name)
                 # Calculate correct base_path for this file (number of parent dirs)
                 depth = 0 if relative_path == '.' else len(relative_path.split(os.sep))
-                page_base_path = '../' * depth if depth > 0 else base_path
+                page_base_path = re.sub(r'/+$', '', '../' * depth if depth > 0 else base_path)
                 generate_page(page_base_path, src_file_path, template_path, dest_file_path)
                 print(f"Generated {dest_file_path} from {src_file_path} using {page_base_path}")
 
