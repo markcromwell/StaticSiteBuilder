@@ -27,9 +27,13 @@ Write the new full HTML page to a file at dest_path. Be sure to create any neces
     with open(template_path, 'r', encoding='utf-8') as f:
         template_content = f.read()
 
-    # Convert markdown to HTML - extract the inner content of the div
+    # Convert markdown to HTML
     md_node = markdown_to_html_node(md_content)
-    html_content = ''.join(child.to_html() for child in md_node.children)
+    html_content = md_node.to_html()
+    print("DEBUG - Generated HTML:", html_content)
+    # Extract just the inner content from the div
+    if html_content.startswith('<div>') and html_content.endswith('</div>'):
+        html_content = html_content[5:-6]  # strip <div> and </div>
 
     # Extract title
     title = extract_title(md_content)
