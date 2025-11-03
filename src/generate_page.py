@@ -91,10 +91,14 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
         for file in files:
             if file.endswith('.md'):
                 src_file_path = os.path.join(root, file)
-                dest_subdir = os.path.join(dest_dir_path, relative_path)
+                # Handle root directory case to avoid extra '.' directory
+                if relative_path == '.':
+                    dest_subdir = dest_dir_path
+                else:
+                    dest_subdir = os.path.join(dest_dir_path, relative_path)
                 dest_file_name = os.path.splitext(file)[0] + '.html'
                 dest_file_path = os.path.join(dest_subdir, dest_file_name)
                 generate_page(src_file_path, template_path, dest_file_path)
                 print(f"Generated {dest_file_path} from {src_file_path}")
 
-                
+

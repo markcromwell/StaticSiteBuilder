@@ -21,12 +21,14 @@ def main():
     public_dest = os.path.join(project_root, "public")
     # template.html lives in the src directory
     template_path = os.path.join(src_dir, "template.html")
-    content_path = os.path.join(project_root, "content", "index.md")
-    output_path = os.path.join(project_root, "public", "index.html")
+    # Use content directory and public directory for recursive generation
+    content_path = os.path.join(project_root, "content")
+    output_path = os.path.join(project_root, "public")
 
     # Resolved paths (no debug print) — generate_page will be called with absolute paths.
 
     copy_static_files(static_src, public_dest)
+    # Generate all pages from the content directory into the public directory
     generate_pages_recursive(content_path, template_path, output_path)
     
 
