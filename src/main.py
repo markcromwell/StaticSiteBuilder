@@ -29,7 +29,10 @@ def main():
 
     copy_static_files(static_src, public_dest)
     # Generate all pages from the content directory into the public directory
-    generate_pages_recursive(content_path, template_path, output_path)
+
+    # Use base path for href/src rewriting (default: empty string for root)
+    basepath = ""
+    generate_pages_recursive(basepath, content_path, template_path, output_path)
     
 
 if __name__ == "__main__":

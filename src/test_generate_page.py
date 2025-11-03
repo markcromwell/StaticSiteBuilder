@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from generate_page import generate_page
 
+
 class TestGeneratePage(unittest.TestCase):
     def setUp(self):
         self.tmpdir = tempfile.TemporaryDirectory()
@@ -29,7 +30,7 @@ class TestGeneratePage(unittest.TestCase):
             "<html><head><title>{{ Title }}</title></head><body>{{ Content }}</body></html>"
         )
 
-        generate_page(str(md_path), str(template_path), str(dest_path))
+        generate_page("", str(md_path), str(template_path), str(dest_path))
         
         output_content = dest_path.read_text(encoding='utf-8')
         self.assertIn("<title>Test Title</title>", output_content)
@@ -60,7 +61,7 @@ def hello():
             "<html><head><title>{{ Title }}</title></head><body>{{ Content }}</body></html>"
         )
 
-        generate_page(str(md_path), str(template_path), str(dest_path))
+        generate_page("", str(md_path), str(template_path), str(dest_path))
         
         output = dest_path.read_text(encoding='utf-8')
         self.assertIn("<h1>Complex Page</h1>", output)
@@ -79,7 +80,7 @@ def hello():
         )
 
         with self.assertRaises(ValueError) as cm:
-            generate_page(str(md_path), str(template_path), str(dest_path))
+            generate_page("", str(md_path), str(template_path), str(dest_path))
         self.assertIn("No title found", str(cm.exception))
 
     def test_custom_template(self):
@@ -105,7 +106,7 @@ def hello():
             template
         )
 
-        generate_page(str(md_path), str(template_path), str(dest_path))
+        generate_page("", str(md_path), str(template_path), str(dest_path))
         
         output = dest_path.read_text(encoding='utf-8')
         self.assertIn("<title>Page Title - My Blog</title>", output)
@@ -123,15 +124,15 @@ def hello():
         # Create a nested destination path
         dest_path = self.tmpdir_path / "posts" / "2025" / "11" / "page.html"
 
-        generate_page(str(md_path), str(template_path), str(dest_path))
+        generate_page("", str(md_path), str(template_path), str(dest_path))
         
         self.assertTrue(dest_path.exists())
         self.assertTrue(dest_path.is_file())
         content = dest_path.read_text(encoding='utf-8')
-        self.assertIn("<h1>Nested Page</h1>", content) 
-
+        self.assertIn("<h1>Nested Page</h1>", content)
 
 
 if __name__ == '__main__':
     unittest.main()
+
 

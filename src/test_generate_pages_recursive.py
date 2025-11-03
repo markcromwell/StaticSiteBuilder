@@ -35,7 +35,7 @@ class TestGeneratePagesRecursive(unittest.TestCase):
         # Generate the page
         dest_file = os.path.join(self.public_dir, "index.html")
         os.makedirs(self.public_dir, exist_ok=True)
-        generate_page(content_file, self.template_path, dest_file)
+        generate_page("", content_file, self.template_path, dest_file)
 
         # Verify the output exists and contains expected content
         self.assertTrue(os.path.exists(dest_file))
@@ -89,7 +89,7 @@ class TestGeneratePagesRecursive(unittest.TestCase):
 
         # Call generate_pages_recursive
         from generate_page import generate_pages_recursive
-        generate_pages_recursive(self.content_dir, self.template_path, self.public_dir)
+        generate_pages_recursive("", self.content_dir, self.template_path, self.public_dir)
 
         # Print generated structure after generation
         print("\nGenerated directory structure:")
@@ -179,7 +179,7 @@ class TestGeneratePagesRecursive(unittest.TestCase):
         dest_file = os.path.join(dest_dir, "Hello World.html")
         os.makedirs(dest_dir, exist_ok=True)
         
-        generate_page(content_file, self.template_path, dest_file)
+        generate_page("", content_file, self.template_path, dest_file)
 
         # Verify the output
         self.assertTrue(os.path.exists(dest_file))
@@ -227,7 +227,7 @@ class TestGeneratePagesRecursive(unittest.TestCase):
                 section = f"section{i}"
                 dest_path = os.path.join(self.public_dir, section, "index.html")
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-            generate_page(content_path, self.template_path, dest_path)
+            generate_page("", content_path, self.template_path, dest_path)
 
         # Verify each file has the correct content
         for i in range(len(paths)):

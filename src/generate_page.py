@@ -4,7 +4,7 @@ from textnode import markdown_to_html_node
 from extract_title import extract_title
 
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(base_path, from_path, template_path, dest_path):
 
     """
 Create a generate_page(from_path, template_path, dest_path) function. It should:
@@ -70,6 +70,7 @@ Write the new full HTML page to a file at dest_path. Be sure to create any neces
     # Replace placeholders in template
     full_html = template_content.replace("{{ Title }}", title).replace("{{ Content }}", html_content)
 
+    full_html = full_html.replace('href="/', f'href="{base_path}/').replace('src="/', f'src="{base_path}/') 
     # Ensure destination directory exists
     dest_dir = os.path.dirname(dest_path)
     os.makedirs(dest_dir, exist_ok=True)
@@ -85,7 +86,7 @@ Crawl every entry in the content directory
 For each markdown file found, generate a new .html file using the same template.html. The generated pages should be written to the public directory in the same directory structure.
 
 """
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(base_path, dir_path_content, template_path, dest_dir_path):
     for root, dirs, files in os.walk(dir_path_content):
         relative_path = os.path.relpath(root, dir_path_content)
         for file in files:
@@ -98,7 +99,10 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
                     dest_subdir = os.path.join(dest_dir_path, relative_path)
                 dest_file_name = os.path.splitext(file)[0] + '.html'
                 dest_file_path = os.path.join(dest_subdir, dest_file_name)
-                generate_page(src_file_path, template_path, dest_file_path)
-                print(f"Generated {dest_file_path} from {src_file_path}")
+                # Calculate correct base_path for this file (number of parent dirs)
+                depth = 0 if relative_path == '.' else len(relative_path.split(os.sep))
+                page_base_path = '../' * depth if depth > 0 else base_path
+                generate_page(page_base_path, src_file_path, template_path, dest_file_path)
+                print(f"Generated {dest_file_path} from {src_file_path} using {page_base_path}")
 
 
