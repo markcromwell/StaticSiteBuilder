@@ -1,3 +1,4 @@
+SITE_PREFIX = '/StaticSiteBuilder'
 
 import os
 import re
@@ -71,16 +72,16 @@ Write the new full HTML page to a file at dest_path. Be sure to create any neces
     # Replace placeholders in template
     full_html = template_content.replace("{{ Title }}", title).replace("{{ Content }}", html_content)
 
-    def join_base_path(base_path, url):
-        # Remove trailing slashes from base_path and leading from url
-        base_path = base_path.rstrip('/')
-        joined = os.path.join(base_path, url.lstrip('/'))
+    def join_site_prefix(url):
+        # Always prepend SITE_PREFIX to absolute URLs
+        joined = SITE_PREFIX + '/' + url.lstrip('/')
         return re.sub(r'/+', '/', joined)
 
-    if base_path:
-        # Replace href="/..." and src="/..." with correct relative path
-        full_html = re.sub(r'href="/([^"]+)"', lambda m: f'href="{join_base_path(base_path, m.group(1))}"', full_html)
-        full_html = re.sub(r'src="/([^"]+)"', lambda m: f'src="{join_base_path(base_path, m.group(1))}"', full_html)
+    # Replace all href="/..." and src="/..." with SITE_PREFIX
+    full_html = re.sub(r'href="/([^"]+)"', lambda m: f'href="{join_site_prefix(m.group(1))}"', full_html)
+    full_html = re.sub(r'src="/([^"]+)"', lambda m: f'src="{join_site_prefix(m.group(1))}"', full_html)
+    # Fix Back Home links to use SITE_PREFIX
+    full_html = re.sub(r'href="/"', f'href="{SITE_PREFIX}/"', full_html)
     # Ensure destination directory exists
     dest_dir = os.path.dirname(dest_path)
     os.makedirs(dest_dir, exist_ok=True)
