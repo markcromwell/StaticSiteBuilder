@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
 from textnode import TextNode
+from copy_static import copy_static_files
 
 
 def main():
-    print("hello world")
-    new_text_node = TextNode("This is some anchor text", "link", "https://www.boot.dev)")
-
-    print (new_text_node)
+    copy_static_files("static", "public")
 
 if __name__ == "__main__":
     main()

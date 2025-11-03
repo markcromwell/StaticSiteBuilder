@@ -91,7 +91,63 @@ def split_nodes_image(old_nodes):
         else:
             new_nodes.append(node)
     return new_nodes
+    
 
+def text_to_children(text):
+    """Convert inline markdown text into a list of HTMLNode children.
+
+    This is a thin helper that reuses text_to_textnodes and
+    text_node_to_html_node to produce LeafNode/ParentNode instances
+    appropriate for inclusion in ParentNode children lists.
+    """
+    text_nodes = text_to_textnodes(text)
+    return [text_node_to_html_node(tn) for tn in text_nodes]
+
+
+def split_nodes_link(old_nodes):
+    """
+    Splits link nodes into separate link text and URL text nodes using regular expressions:
+    For example, a link node with text "[example](https://example.com)" would be split into two nodes:
+        1. A text node with text "example"
+        2. A text node with text "https://example.com"
+    So the input:
+    old_nodes = [TextNode("This is text with a [example](https://example.com) link.", TextType.TEXT)]
+    Would result in:
+    new_nodes = [TextNode("This is text with a ", TextType.TEXT),
+                 TextNode("example", TextType.TEXT),
+                 TextNode("https://example.com", TextType.TEXT),
+                 TextNode(" link.", TextType.TEXT)]
+    From the original node:
+    "This is text with a [example](https://example.com) link."
+    """
+    import re
+
+    link_pattern = r'\[(.*?)\]\((.*?)\)'
+
+    new_nodes = []
+    for node in old_nodes:
+        if node.text_type == TextType.LINK:
+            # If the link node's text is empty, return a single empty TEXT node.
+            if node.text == "":
+                new_nodes.append(TextNode("", TextType.TEXT))
+                continue
+
+            parts = re.split(link_pattern, node.text)
+            i = 0
+            while i < len(parts):
+                if i % 3 == 0:
+                    if parts[i]:
+                        new_nodes.append(TextNode(parts[i], TextType.TEXT))
+                elif i % 3 == 1:
+                    link_text = parts[i]
+                elif i % 3 == 2:
+                    link_url = parts[i]
+                    new_nodes.append(TextNode(link_text, TextType.TEXT))
+                    new_nodes.append(TextNode(link_url, TextType.TEXT))
+                i += 1
+        else:
+            new_nodes.append(node)
+    return new_nodes
 
 
 def split_nodes_link(old_nodes):   
@@ -299,67 +355,27 @@ def markdown_to_html_node(markdown):
     """
     import re
     from parentnode import ParentNode
+    from renderers import (
+        render_paragraph, render_heading, render_code,
+        render_quote, render_unordered_list, render_ordered_list
+    )
 
     root_children = []
     for block in markdown_to_blocks(markdown):
         btype = block_to_block_type(block)
 
         if btype == BlockType.PARAGRAPH:
-            # collapse single newlines within a paragraph to spaces (Markdown behavior)
-            content = block.replace('\n', ' ')
-            text_nodes = text_to_textnodes(content)
-            children = [text_node_to_html_node(tn) for tn in text_nodes]
-            root_children.append(ParentNode('p', children))
-
+            root_children.append(render_paragraph(block))
         elif btype == BlockType.HEADING:
-            m = re.match(r'^(#{1,6})\s+(.*)', block)
-            level = len(m.group(1)) if m else 1
-            tag = f'h{level}'
-            heading_text = m.group(2) if m else block
-            text_nodes = text_to_textnodes(heading_text)
-            children = [text_node_to_html_node(tn) for tn in text_nodes]
-            root_children.append(ParentNode(tag, children))
-
+            root_children.append(render_heading(block))
         elif btype == BlockType.CODE:
-            # extract content between fences
-            start = block.find('```')
-            end = block.rfind('```')
-            inner = ''
-            if start != -1 and end != -1 and end > start:
-                inner = block[start+3:end]
-                if inner.startswith('\n'):
-                    inner = inner[1:]
-            # preserve inner newlines
-            code_text = LeafNode(None, inner)
-            code_node = ParentNode('code', [code_text])
-            pre_node = ParentNode('pre', [code_node])
-            root_children.append(pre_node)
-
+            root_children.append(render_code(block))
         elif btype == BlockType.QUOTE:
-            lines = block.splitlines()
-            stripped = [re.sub(r'^>\s?', '', ln) for ln in lines]
-            joined = '\n'.join(stripped)
-            text_nodes = text_to_textnodes(joined)
-            children = [text_node_to_html_node(tn) for tn in text_nodes]
-            root_children.append(ParentNode('blockquote', [ParentNode('p', children)]))
-
+            root_children.append(render_quote(block))
         elif btype == BlockType.UNORDERED_LIST:
-            items = []
-            for line in block.splitlines():
-                content = re.sub(r'^-\s', '', line)
-                text_nodes = text_to_textnodes(content)
-                children = [text_node_to_html_node(tn) for tn in text_nodes]
-                items.append(ParentNode('li', children))
-            root_children.append(ParentNode('ul', items))
-
+            root_children.append(render_unordered_list(block))
         elif btype == BlockType.ORDERED_LIST:
-            items = []
-            for line in block.splitlines():
-                content = re.sub(r'^\d+\.\s', '', line)
-                text_nodes = text_to_textnodes(content)
-                children = [text_node_to_html_node(tn) for tn in text_nodes]
-                items.append(ParentNode('li', children))
-            root_children.append(ParentNode('ol', items))
+            root_children.append(render_ordered_list(block))
 
     return ParentNode('div', root_children)
 
